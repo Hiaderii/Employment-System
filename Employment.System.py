@@ -81,58 +81,19 @@ class Candidate:
                 f"Skills: {', '.join(self.skills)}\n{'-' * 60}")
 
 
-class JuniorCandidate(Candidate):
-    def __init__(self, first_name, last_name, age, specialization, experience_years, skills, candidate_id, training_program):
+class Employee(Candidate):
+    def __init__(self, first_name, last_name, age, specialization, experience_years, skills, candidate_id, salary, hire_date):
         super().__init__(first_name, last_name, age, specialization, experience_years, skills, candidate_id)
-        self.__training_program = training_program
-    
-    @property
-    def training_program(self):
-        return self.__training_program
-    
-    @training_program.setter
-    def training_program(self, value):
-        self.__training_program = value
+        self.salary = salary
+        self.hire_date = hire_date
+        self.performance_rating = None
 
-    # إعادة تعريف دالة __str__ لإضافة معلومات البرنامج التدريبي
+    def set_performance_rating(self, rating):
+        self.performance_rating = rating
+
     def __str__(self):
-        return (super().__str__() + f"Training Program: {self.training_program}\n{'-' * 60}")
-
-
-class MidLevelCandidate(Candidate):
-    def __init__(self, first_name, last_name, age, specialization, experience_years, skills, candidate_id, certifications):
-        super().__init__(first_name, last_name, age, specialization, experience_years, skills, candidate_id)
-        self.__certifications = certifications
-    
-    @property
-    def certifications(self):
-        return self.__certifications
-    
-    @certifications.setter
-    def certifications(self, value):
-        self.__certifications = value
-
-    # إعادة تعريف دالة __str__ لإضافة الشهادات
-    def __str__(self):
-        return (super().__str__() + f"Certifications: {', '.join(self.certifications)}\n{'-' * 60}")
-
-
-class ExpertCandidate(Candidate):
-    def __init__(self, first_name, last_name, age, specialization, experience_years, skills, candidate_id, leadership_projects):
-        super().__init__(first_name, last_name, age, specialization, experience_years, skills, candidate_id)
-        self.__leadership_projects = leadership_projects
-    
-    @property
-    def leadership_projects(self):
-        return self.__leadership_projects
-    
-    @leadership_projects.setter
-    def leadership_projects(self, value):
-        self.__leadership_projects = value
-
-    # إعادة تعريف دالة __str__ لإضافة مشاريع القيادة
-    def __str__(self):
-        return (super().__str__() + f"Leadership Projects: {', '.join(self.leadership_projects)}\n{'-' * 60}")
+        return (super().__str__() +
+                f", Salary: {self.salary}, Hire Date: {self.hire_date}, Performance Rating: {self.performance_rating or 'N/A'}")
 
 
 class Company:
@@ -167,7 +128,7 @@ class Company:
     @min_experience.setter
     def min_experience(self, value):
         if value < 0:
-            raise ValueError("Minimum experience cannot be negative")
+            return ValueError("Minimum experience cannot be negative")
         self.__min_experience = value
 
     @property
@@ -180,22 +141,23 @@ class Company:
 
     def accept_candidate(self, candidate):
         if candidate.first_name == "Faris" and candidate.last_name == "Yasien":
-            # قبول فارس ياسين بدون شروط
             self.accepted_candidates.append(candidate)
-            print(f"Candidate {candidate.first_name} {candidate.last_name} has been accepted by {self.company_name} through exception (Wasta).")
+            print("-" * 85)
+            print(f"Candidate {candidate.first_name} {candidate.last_name} has been accepted by {self.company_name} through exception (Wasta) by al-haji.")
+            print("-" * 85)
             return
 
         if candidate.specialization != self.required_specialization:
-            print(f"Candidate {candidate.first_name} {candidate.last_name} does not meet specialization requirements.")
+            print(f"Candidate {candidate.first_name} {candidate.last_name} does not meet specialization requirements for {self.company_name}.")
             return
 
         if candidate.experience_years < self.min_experience:
-            print(f"Candidate {candidate.first_name} {candidate.last_name} does not have enough experience.")
+            print(f"Candidate {candidate.first_name} {candidate.last_name} does not have enough experience for {self.company_name}.")
             return
 
         skill_count = sum(1 for skill in self.required_skills if skill in candidate.skills)
         if skill_count < self.__min_skills_required:
-            print(f"Candidate {candidate.first_name} {candidate.last_name} does not have enough required skills.")
+            print(f"Candidate {candidate.first_name} {candidate.last_name} does not have enough required skills (at least {self.__min_skills_required} required) for {self.company_name}.")
             return
 
         self.accepted_candidates.append(candidate)
@@ -205,6 +167,9 @@ class Company:
         print(f"\nAccepted Candidates in {self.company_name}:")
         for candidate in self.accepted_candidates:
             print(candidate)
+
+    def accepted_count(self):
+        return len(self.accepted_candidates)
 
 
 class System:
@@ -224,28 +189,33 @@ class System:
                 company.accept_candidate(candidate)
 
 
-# إنشاء المرشحين
-candidate1 = JuniorCandidate("Ahmad", "Ali", 22, "Computer Science", 0, ["Python", "JavaScript"], 1, "Python Bootcamp")
-candidate2 = MidLevelCandidate("Hussain", "Mohammed", 26, "Software Development", 3, ["C++", "Ruby", "Python"], 2, ["AWS Certification", "Oracle Certification"])
-candidate3 = ExpertCandidate("Karrar", "Hussain", 30, "Web Development", 5, ["HTML", "CSS", "React", "Node.js"], 3, ["E-commerce Project", "CRM System"])
-candidate4 = Candidate("Faris", "Yasien", 24, "Software Engineering", 1, ["Python"], 4)  # مرشح بالواسطة
+candidate1 = Candidate("Ahmad", "Ali", 28, "Computer Science", 4, ["Python", "JavaScript", "C"], 1)
+candidate2 = Candidate("Hussain", "Mohammed", 26, "Software Development", 3, ["C++", "Ruby", "Python"], 2)
+candidate3 = Candidate("Karrar", "Hussain", 30, "Web Development", 5, ["HTML", "CSS", "React", "Node.js"], 3)
+candidate4 = Candidate("Faris", "Yasien", 24, "Software Engineering", 1, ["Python"], 9)
 
-# إنشاء الشركات
+employee = Employee("Ahmad", "Ali", 28, "Computer Science", 4, ["Python", "JavaScript", "C"], 1, 5000, "2024-01-01")
+employee.set_performance_rating("Excellent")
+
 company1 = Company("Tech Innovations", "Web Development", 2, ["HTML", "CSS", "JavaScript", "React"])
-company2 = Company("Data Insights", "Software Development", 3, ["C++", "Java", "Python"])
+company2 = Company("Data Insights", "Software Development", 3, ["Python", "C++", "Machine Learning", "SQL"])
 
-# إضافة الشركات والمرشحين للنظام
-system = System()
-system.add_company(company1)
-system.add_company(company2)
-system.add_candidate(candidate1)
-system.add_candidate(candidate2)
-system.add_candidate(candidate3)
-system.add_candidate(candidate4)
+recruitment_system = System()
 
-# تقديم الطلبات
-system.apply_candidates()
+recruitment_system.add_company(company1)
+recruitment_system.add_company(company2)
+recruitment_system.add_candidate(candidate1)
+recruitment_system.add_candidate(candidate2)
+recruitment_system.add_candidate(candidate3)
+recruitment_system.add_candidate(candidate4)
+recruitment_system.add_candidate(employee)
 
-# عرض المرشحين المقبولين
+recruitment_system.apply_candidates()
+
 company1.list_accepted_candidates()
 company2.list_accepted_candidates()
+
+print(f"\nNumber of accepted candidates in {company1.company_name}: {company1.accepted_count()}")
+print(f"Number of accepted candidates in {company2.company_name}: {company2.accepted_count()}")
+
+Candidate.candidate_count()
