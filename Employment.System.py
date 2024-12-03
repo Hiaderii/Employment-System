@@ -1,19 +1,13 @@
-class Candidate:
-    number_of_Candidates = 0
+from abc import ABC, abstractmethod
 
-    def __init__(self, first_name, last_name, age, specialization, experience_years, skills, candidate_id):
+
+# Abstract base class Person
+class Person(ABC):
+    @abstractmethod
+    def __init__(self, first_name, last_name, age):
         self.__first_name = first_name
         self.__last_name = last_name
         self.__age = age
-        self.__specialization = specialization
-        self.__experience_years = experience_years
-        self.__skills = skills
-        self.__candidate_id = candidate_id
-        Candidate.number_of_Candidates += 1
-    
-    @classmethod
-    def candidate_count(cls):
-        print(f"The number of candidates is: {cls.number_of_Candidates}")
 
     @property
     def first_name(self):
@@ -40,6 +34,23 @@ class Candidate:
         if value < 18:
             raise ValueError("Age must be at least 18")
         self.__age = value
+
+    @abstractmethod
+    def __str__(self):
+        pass
+
+
+# Candidate class
+class Candidate(Person):
+    number_of_Candidates = 0
+
+    def __init__(self, first_name, last_name, age, specialization, experience_years, skills, candidate_id):
+        super().__init__(first_name, last_name, age)
+        self.__specialization = specialization
+        self.__experience_years = experience_years
+        self.__skills = skills
+        self.__candidate_id = candidate_id
+        Candidate.number_of_Candidates += 1
 
     @property
     def specialization(self):
@@ -80,61 +91,40 @@ class Candidate:
                 f"Specialization: {self.specialization}, Experience years: {self.experience_years}\n"
                 f"Skills: {', '.join(self.skills)}\n{'-' * 60}")
 
+    def __repr__(self):
+        return f"Candidate({self.first_name}, {self.last_name}, ID={self.candidate_id})"
 
-class JuniorCandidate(Candidate):
-    def __init__(self, first_name, last_name, age, specialization, experience_years, skills, candidate_id, training_program):
+    def __eq__(self, other):
+        if isinstance(other, Candidate):
+            return self.experience_years == other.experience_years and len(self.skills) == len(other.skills)
+        return False
+
+    def __lt__(self, other):
+        if isinstance(other, Candidate):
+            return self.experience_years < other.experience_years
+        raise TypeError(f"Cannot compare Candidate with {type(other)}")
+
+    def __len__(self):
+        return len(self.skills)
+
+
+# Employee class
+class Employee(Candidate):
+    def __init__(self, first_name, last_name, age, specialization, experience_years, skills, candidate_id, salary, hire_date):
         super().__init__(first_name, last_name, age, specialization, experience_years, skills, candidate_id)
-        self.__training_program = training_program
-    
-    @property
-    def training_program(self):
-        return self.__training_program
-    
-    @training_program.setter
-    def training_program(self, value):
-        self.__training_program = value
+        self.salary = salary
+        self.hire_date = hire_date
+        self.performance_rating = None
 
-    # إعادة تعريف دالة __str__ لإضافة معلومات البرنامج التدريبي
+    def set_performance_rating(self, rating):
+        self.performance_rating = rating
+
     def __str__(self):
-        return (super().__str__() + f"Training Program: {self.training_program}\n{'-' * 60}")
+        return (super().__str__() +
+                f", Salary: {self.salary}, Hire Date: {self.hire_date}, Performance Rating: {self.performance_rating or 'N/A'}")
 
 
-class MidLevelCandidate(Candidate):
-    def __init__(self, first_name, last_name, age, specialization, experience_years, skills, candidate_id, certifications):
-        super().__init__(first_name, last_name, age, specialization, experience_years, skills, candidate_id)
-        self.__certifications = certifications
-    
-    @property
-    def certifications(self):
-        return self.__certifications
-    
-    @certifications.setter
-    def certifications(self, value):
-        self.__certifications = value
-
-    # إعادة تعريف دالة __str__ لإضافة الشهادات
-    def __str__(self):
-        return (super().__str__() + f"Certifications: {', '.join(self.certifications)}\n{'-' * 60}")
-
-
-class ExpertCandidate(Candidate):
-    def __init__(self, first_name, last_name, age, specialization, experience_years, skills, candidate_id, leadership_projects):
-        super().__init__(first_name, last_name, age, specialization, experience_years, skills, candidate_id)
-        self.__leadership_projects = leadership_projects
-    
-    @property
-    def leadership_projects(self):
-        return self.__leadership_projects
-    
-    @leadership_projects.setter
-    def leadership_projects(self, value):
-        self.__leadership_projects = value
-
-    # إعادة تعريف دالة __str__ لإضافة مشاريع القيادة
-    def __str__(self):
-        return (super().__str__() + f"Leadership Projects: {', '.join(self.leadership_projects)}\n{'-' * 60}")
-
-
+# Company class
 class Company:
     def __init__(self, company_name, required_specialization, min_experience, required_skills, min_skills_required=2):
         self.__company_name = company_name
@@ -148,65 +138,36 @@ class Company:
     def company_name(self):
         return self.__company_name
 
-    @company_name.setter
-    def company_name(self, value):
-        self.__company_name = value
-
     @property
     def required_specialization(self):
         return self.__required_specialization
-
-    @required_specialization.setter
-    def required_specialization(self, value):
-        self.__required_specialization = value
 
     @property
     def min_experience(self):
         return self.__min_experience
 
-    @min_experience.setter
-    def min_experience(self, value):
-        if value < 0:
-            raise ValueError("Minimum experience cannot be negative")
-        self.__min_experience = value
-
     @property
     def required_skills(self):
         return self.__required_skills
 
-    @required_skills.setter
-    def required_skills(self, value):
-        self.__required_skills = value
-
-    def accept_candidate(self, candidate):
-        if candidate.first_name == "Faris" and candidate.last_name == "Yasien":
-            # قبول فارس ياسين بدون شروط
-            self.accepted_candidates.append(candidate)
-            print(f"Candidate {candidate.first_name} {candidate.last_name} has been accepted by {self.company_name} through exception (Wasta).")
-            return
-
+    def accept_candidates(self, candidate):
         if candidate.specialization != self.required_specialization:
-            print(f"Candidate {candidate.first_name} {candidate.last_name} does not meet specialization requirements.")
             return
-
         if candidate.experience_years < self.min_experience:
-            print(f"Candidate {candidate.first_name} {candidate.last_name} does not have enough experience.")
             return
-
         skill_count = sum(1 for skill in self.required_skills if skill in candidate.skills)
         if skill_count < self.__min_skills_required:
-            print(f"Candidate {candidate.first_name} {candidate.last_name} does not have enough required skills.")
             return
-
         self.accepted_candidates.append(candidate)
-        print(f"Candidate {candidate.first_name} {candidate.last_name} has been accepted by {self.company_name}.")
 
-    def list_accepted_candidates(self):
-        print(f"\nAccepted Candidates in {self.company_name}:")
-        for candidate in self.accepted_candidates:
-            print(candidate)
+    def __len__(self):
+        return len(self.accepted_candidates)
+
+    def __repr__(self):
+        return f"Company({self.company_name}, Accepted={len(self)})"
 
 
+# System class
 class System:
     def __init__(self):
         self.companies = []
@@ -221,31 +182,59 @@ class System:
     def apply_candidates(self):
         for candidate in self.candidates:
             for company in self.companies:
-                company.accept_candidate(candidate)
+                company.accept_candidates(candidate)
 
 
-# إنشاء المرشحين
-candidate1 = JuniorCandidate("Ahmad", "Ali", 22, "Computer Science", 0, ["Python", "JavaScript"], 1, "Python Bootcamp")
-candidate2 = MidLevelCandidate("Hussain", "Mohammed", 26, "Software Development", 3, ["C++", "Ruby", "Python"], 2, ["AWS Certification", "Oracle Certification"])
-candidate3 = ExpertCandidate("Karrar", "Hussain", 30, "Web Development", 5, ["HTML", "CSS", "React", "Node.js"], 3, ["E-commerce Project", "CRM System"])
-candidate4 = Candidate("Faris", "Yasien", 24, "Software Engineering", 1, ["Python"], 4)  # مرشح بالواسطة
 
-# إنشاء الشركات
+candidate1 = Candidate("Ali", "Mohammed", 32, "Data Science", 5, ["Python", "R", "SQL","HTML", "CSS"], 4)
+candidate2 = Candidate("Sara", "Fahad", 25, "Software Development", 3, ["Java", "C#", "SQL"], 5)
+candidate3 = Candidate("Omar", "Youssef", 29, "Web Development", 5, ["HTML", "CSS", "JavaScript","Python","C#"], 6)
+candidate4 = Candidate("Laila", "Nasir", 27, "Data Science", 4, ["Python", "SQL", "Tableau"], 7)
+candidate5 = Candidate("Hassan", "Ali", 33, "Software Development", 6, ["C++", "Java", "Python","HTML", "CSS", "JavaScript"], 8)
+candidate6 = Candidate("Rana", "Hussein", 28, "Web Development", 3, ["HTML", "CSS", "Node.js"], 9)
+
+    
+employee1 = Employee("Ahmed", "Ali", 30, "Data Science", 6, ["Python", "Machine Learning"], 7, 6000, "2022-02-01")
+employee1.set_performance_rating("Excellent")
+
 company1 = Company("Tech Innovations", "Web Development", 2, ["HTML", "CSS", "JavaScript", "React"])
-company2 = Company("Data Insights", "Software Development", 3, ["C++", "Java", "Python"])
+company2 = Company("Data Insights", "Data Science", 3, ["Python", "SQL", "R"])
 
-# إضافة الشركات والمرشحين للنظام
-system = System()
-system.add_company(company1)
-system.add_company(company2)
-system.add_candidate(candidate1)
-system.add_candidate(candidate2)
-system.add_candidate(candidate3)
-system.add_candidate(candidate4)
+    
+recruitment_system = System()
+recruitment_system.add_company(company1)
+recruitment_system.add_company(company2)
 
-# تقديم الطلبات
-system.apply_candidates()
+recruitment_system.add_candidate(candidate1)
+recruitment_system.add_candidate(candidate2)
+recruitment_system.add_candidate(candidate3)
+recruitment_system.add_candidate(candidate4)
+recruitment_system.add_candidate(candidate5)
+recruitment_system.add_candidate(candidate6)
+recruitment_system.add_candidate(employee1)
 
-# عرض المرشحين المقبولين
-company1.list_accepted_candidates()
-company2.list_accepted_candidates()
+recruitment_system.apply_candidates()
+
+print("\n Comparing candidates")
+print(f"Are {candidate1.first_name} and {candidate2.first_name} equal? {candidate1 == candidate2}")
+print(f"Are {candidate1.first_name} and {candidate3.first_name} equal? {candidate1 == candidate3}")
+print(f"Are {candidate4.first_name} and {candidate5.first_name} equal? {candidate4 == candidate5}")
+
+   
+print("\n Sorting candidates by years of experience ")
+sorted_candidates = sorted([candidate1, candidate2, candidate3, candidate4, candidate5, candidate6])
+for candidate in sorted_candidates:
+    print(candidate)
+
+    
+print("\n Counting the number of skills for each candidate ")
+print(f"{candidate1.first_name} has {len(candidate1)} skills.")
+print(f"{candidate2.first_name} has {len(candidate2)} skills.")
+print(f"{candidate3.first_name} has {len(candidate3)} skills.")
+print(f"{candidate4.first_name} has {len(candidate4)} skills.")
+print(f"{candidate5.first_name} has {len(candidate5)} skills.")
+print(f"{candidate6.first_name} has {len(candidate6)} skills.")
+
+
+print(f"\nNumber of accepted candidates in {company1.company_name}: {len(company1)}")
+print(f"Number of accepted candidates in {company2.company_name}: {len(company2)}")
